@@ -1,10 +1,12 @@
 import openpyxl  # импортируем модуль по работе с электронными таблицами
+import time
 """
 """
 
 class FileLoader:
 
     def load_file_new(path_to_file, param):
+        start_time = time.time()
         gender = ['унисекс', 'мужчинам', 'женщинам']
         vat = {0: 'медицина', 10: 'детский', 20: 'обычный'}
         textile_type = ['текстиль', 'трикотаж', 'другое']
@@ -42,11 +44,11 @@ class FileLoader:
                         good = good + ' ' + str(value)
             goods_description.append(good)
         file.close()
+        time_exect=str("Выгрузка и предварительная обработка обучающей выборки заняла %s seconds." % (time.time() - start_time))
         if param == 1:
-            return goods_description, goods_class_values
+            return goods_description, goods_class_values, time_exect
         else:
-            return goods_description
-
+            return goods_description, time_exect
 
 path = 'teach_file_sample.xlsx'
 path2 = 'teach_test_sample.xlsx'
