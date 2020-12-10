@@ -7,11 +7,11 @@ path = 'teach_file_sample.xlsx'  # путь к загружаемому файл
 path2='teach_test_sample.xlsx'
 
 # загружаем обучающую выборку: описание товаров
-model_goods_description = FileLoader.load_file(path,1)[0]
+model_goods_description = FileLoader.load_file_new(path,1)[0]
 #model_goods_description1 = ['Женщины верхняя одежда куртка джинсовая куртка', 'Мужчины верхняя одежда куртка пуховик']
 
 # загружаем обучающую выборку: значения категорий для обучающего множества товаров
-model_goods_class_values = np.array(FileLoader.load_file(path,1)[1])
+model_goods_class_values = np.array(FileLoader.load_file_new(path,1)[1])
 #model_goods_class_values1 = np.array([1, 2])
 
 # создаем пустой словарь
@@ -37,7 +37,7 @@ model.fit(model_goods_vectors.toarray(), model_goods_class_values)
 #model1.fit(model_goods_vectors1.toarray(), model_goods_class_values1)
 
 # загружаем описание товара для классификации
-good_without_class_description = FileLoader.load_file(path2,2)
+good_without_class_description = FileLoader.load_file_new(path2,2)
 print(good_without_class_description)
 
 # перводим описание товара в векторную форму используя созданный ранее словарб
