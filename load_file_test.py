@@ -1,6 +1,7 @@
 import openpyxl  # импортируем модуль по работе с электронными таблицами
 import time
-from pymorphy2 import MorphAnalyzer
+import text_transformation
+
 
 """
 """
@@ -62,6 +63,7 @@ class FileLoader:
         else:
             return good+' '+value
             #return FileLoader.filtr_by_word_form(value,good)
+            #return text_transformation.filtr_by_word_form(value,good)
     def supplier_good_classifier_value(goods_supplier_class, value):
         if value != None:
             goods_supplier_class = goods_supplier_class + ' ' + str(value)
@@ -98,18 +100,6 @@ class FileLoader:
             return goods_description, goods_class_values, time_exect, supplier_load_classifir_for_good
         else:
             return goods_description, time_exect, supplier_load_classifir_for_good
-
-    def filtr_by_word_form(value,good):
-        morph = MorphAnalyzer()
-        new_str = str()
-        value = str.strip(value)
-        value = value.replace('.', '').replace(',', '').replace('!', '').replace(':', ''). \
-            replace(';', '').replace('-', '').split(' ')
-        for word in value:
-            if morph.parse(word)[0].tag.POS == 'NOUN':
-                word = morph.parse(word)[0].normal_form
-                new_str = ''.join(word)
-        return good + ' ' + new_str
 
 
 
