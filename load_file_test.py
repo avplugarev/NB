@@ -1,5 +1,5 @@
 import openpyxl  # импортируем модуль по работе с электронными таблицами
-import text_transformation
+import text_normalisation
 
 #класс загрузки данных из файла для обучения и для тестирования обучения
 class FileLoader:
@@ -92,18 +92,8 @@ class FileLoader:
         return working_sheet
 
 
-path = 'teach_file_sample.xlsx'
+path = 'file_to_load/teach_file_sample.xlsx'
 path2 = 'teach_test_sample.xlsx'
 
-
-
-# print(FileLoader.load_file(path2,2))
 #print(FileLoader.load_file(path))
 
-
-
-path = 'teach_file_sample.xlsx'
-path2 = 'teach_test_sample.xlsx'
-
-# print(FileLoader.load_file(path2,2))
-# print(FileLoader.load_file_new(path, 1))

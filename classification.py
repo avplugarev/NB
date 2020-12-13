@@ -2,7 +2,8 @@ from sklearn.naive_bayes import BernoulliNB  # импорт НБ Бернули
 from sklearn.feature_extraction.text import CountVectorizer  # импортируем класс преобразования из текста в вектор
 import numpy as np
 from load_file_test import FileLoader
-from statistic import quality_classification
+import statistic
+import time
 
 
 def teach_classifier(path):
@@ -26,7 +27,7 @@ def good_preparation(path, model_vocabular):
     # print(good_without_class_description[0])
     good_without_class_vector = model_vocabular.transform(
         good_without_class_description[0])  # переводим описание в векторную форму
-    return good_without_class_vector.toarray()  # возвращаем массиф вектров с описанием товаров
+    return good_without_class_vector.toarray(), good_without_class_description  # возвращаем массиф вектров с описанием товаров
 
 
 def classifay(model, good_without_class_vector):
@@ -34,13 +35,25 @@ def classifay(model, good_without_class_vector):
     return good_class
 
 
-path = 'teach_file_sample.xlsx'  # обучающий файл
+path = 'file_to_load/teach_file_sample.xlsx'  # обучающий файл
 path2 = 'teach_test_sample.xlsx'  # боевой тестируемый файл
 path3 = 'отладочный файл'  # для тестов и замеров
+start_time_edu = time.time()
 
+#обучаем модель
 model = teach_classifier(path)
+
+#готовим товары к оценке
+start_time_clas = time.time()
 goods = good_preparation(path, model[1])
-result = classifay(model[0], goods)
-print(result)
+
+#получаем результаты оценки
+result = classifay(model[0], goods[0])
+print('\nРезультаты классификации товаров:',result, '\n')
 
 # статистика по тестированию
+for value in (statistic.quality_classification(goods[1][0],goods[1][1],result, start_time_edu, start_time_clas)):
+    print(value)
+
+
+
