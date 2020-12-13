@@ -52,7 +52,7 @@ result = classifay(model[0], goods[0])
 print('\nРезультаты классификации товаров:',result, '\n')
 
 # статистика по тестированию
-for value in (statistic.quality_classification(goods[1][0],goods[1][1],result, start_time_edu, start_time_clas)):
+for value in (statistic.quality_classification(goods[1][0],goods[1][1],result, start_time_edu, start_time_clas, goods[1][2])):
     print(value)
 
 
