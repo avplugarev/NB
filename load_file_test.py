@@ -1,5 +1,6 @@
 import openpyxl  # импортируем модуль по работе с электронными таблицами
 import text_normalisation
+import bd_connector
 
 #класс загрузки данных из файла для обучения и для тестирования обучения
 class FileLoader:
@@ -91,9 +92,45 @@ class FileLoader:
         working_sheet.delete_rows(0)
         return working_sheet
 
+    def load_classifier_kupivip(path):
+        file = openpyxl.load_workbook(path_to_classifier)  # загружам файл в объект для дальнейшей работе с ним
+        working_sheet = file.active  # получаю объект лист ддя работы
+
+        # dict_category={}
+
+        for row in working_sheet.values:
+            category_id = {}
+            data = {}
+            category_path = str()
+            for value in row[:1]:
+                category_id = value
+            for value in row[2:7]:
+                if value == None:
+                    category_path = category_path + ' ' + str('None')
+                else:
+                    category_path = category_path + ' ' + value
+            # dict_category[category_id]=category_path
+            data['category_id'] = category_id
+            data['path_category'] = category_path
+            bd_connector.add_category_kupivip(data)
+        file.close()
+        return 'данные по категориям успешно загружены'
+
+
+
 
 path = 'file_to_load/teach_file_sample.xlsx'
 path2 = 'teach_test_sample.xlsx'
-
 #print(FileLoader.load_file(path))
+path_to_classifier = 'file_to_load/class_ready.xlsx'
+
+#print(FileLoader.load_classifier_kupivip(path_to_classifier))
+
+
+
+
+
+
+
+
 

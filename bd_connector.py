@@ -85,5 +85,5 @@ def get_category_kupivip(category_id):
 data_cat={'category_id':'23', 'path_category':'Для дома Домашний текстиль Одеяла'};
 
 #add_category_kupivip(data_cat)
-tr=(get_category_kupivip(23))
-print (tr.category_path)
+#tr=(get_category_kupivip(23))
+#print (tr.category_path)
