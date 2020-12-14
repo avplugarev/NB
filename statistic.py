@@ -15,7 +15,10 @@ R - полнота. R= a/(а+c), где a – кол-во правильно о�
 
 P - точность P=a/(a+b), где а - кол-во правильно определенных и b -кол-во неправильно определенных документов к одному классу.
 Точность – доля правильно определенных документов данного класса от всего кол-во документов, которое классификатор записал в данный класс.
-Из всего что записал в класс, насколько правильно  
+Из всего что записал в класс, насколько правильно 
+
+F-мера - содержит баланс межлу R и P  F=2pr/p+r
+Для общего используем макроусреднение - составляем по каждому и делим на кол-во
 
 В качестве маркера для проверки базового значения проверяем на тех же данных, что и при обучении, чтобы исключить наличие ошибок классификации уже на этом этапе  
 
@@ -63,17 +66,25 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
         dict_p[value] = dict_a[value] / (dict_a[value] + dict_c[value])
         dict_r[value] = dict_a[value] / (dict_a[value] + dict_d[value])
         dict_e[value] = (dict_c[value] + dict_d[value]) / (
-                    dict_c[value] + dict_d[value] + dict_a[value] + dict_a[value])
+                dict_c[value] + dict_d[value] + dict_a[value] + dict_a[value])
+
+    dict_f = {}  # F-мера
+    for value in list_categories:
+        dict_f[value] = (2 * dict_p[value] * dict_r[value]) / (dict_p[value] + dict_r[value])
+
+    f_general = (sum(dict_f.values())) / len(dict_f)  # F-мера средняя по всем категориям
 
     # сохраняем значения в excel
     wb = Workbook()
     path_to_file = 'file_to_load/output.xlsx'
 
+    #заполняем первую вкладку значениями классификатора
+    ##заголовок таблицы
     ws1 = wb.active
     ws1.title = 'результат классификации'
     column_titles = {0: '№ товара', 1: 'Путь классификатора поставщика', 2: 'ID классификатора учителя',
                      3: 'ID классификатора алогоритма'}
-    # tr=len(goods_supplier_classes)+1
+    ##значения таблицы классификатора
     counter = int(0)
     while counter < len(goods_supplier_classes) + 1:
         if counter == 0:
@@ -90,17 +101,18 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
                 else:
                     ws1.cell(column=col, row=counter + 1, value='{0}'.format(goods_classes_by_algorithm[counter - 1]))
         counter = counter + 1
-
+    #заполняем вторую вкладку результаты анализа
     ws2 = wb.create_sheet(title="Оценка классификации")
-    column_titles2 = {0: '№', 1: 'Класс', 2: 'P-точность', 3: 'Полнота',
-                      4: 'Ошибка'}  # добавить кол-во ошибок на категорию
+    ##заполняем заголовки общей таблицы
+    column_titles2 = {0: '№', 1: 'Класс', 2: 'P-точность', 3: 'R-Полнота',
+                      4: 'E-Ошибка', 5: 'F-мера'}
 
-    for col in range(1, 6):
+    for col in range(1, 7):
         ws2.cell(column=col, row=1, value='{0}'.format(column_titles2[col - 1]))
-
+    ##заполяняем значения таблицы
     row_no = 2
     for value in list_categories:
-        for col in range(1, 6):
+        for col in range(1, 7):
             if col == 1:
                 ws2.cell(column=col, row=row_no, value='{0}'.format(row_no - 1))
             elif col == 2:
@@ -109,12 +121,28 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
                 ws2.cell(column=col, row=row_no, value='{0}'.format(dict_p[value]))
             elif col == 4:
                 ws2.cell(column=col, row=row_no, value='{0}'.format(dict_r[value]))
-            else:
+            elif col == 5:
                 ws2.cell(column=col, row=row_no, value='{0}'.format(dict_e[value]))
+            else:
+                ws2.cell(column=col, row=row_no, value='{0}'.format(dict_f[value]))
         row_no = row_no + 1
 
-    wb.save(filename=path_to_file)
+    ##заполняем заголовки футтера таблицы доп значениями
+    column_titles3 = {0: 'Общее время:', 1: 'Всего классифицировано:', 2: 'Из них правильно',
+                      3: 'Из них не правильно', 4: 'Общая сбалансированная  F'}  # добавить кол-во ошибок на категорию
+    output_values = {0: general_time, 1: goods_quantity, 2: correct_estimates,
+                     3: error_estimates, 4: f_general}
 
+    ##заполняем значения футтера таблицы доп значениями
+    i = 0
+    for row in range(row_no, row_no + 5, 1):
+        for col in range(1, 2):
+            ws2.cell(column=col, row=row, value='{0}'.format(column_titles3[i]))
+        for col in range(2, 3):
+            ws2.cell(column=col, row=row, value='{0}'.format(output_values[i]))
+        i=i+1
+
+    wb.save(filename=path_to_file)
 
     return 'Оценка классификации:', \
            '\nОбщее время выполнения оценки: {0} сек. Из них:'.format(general_time), \
@@ -125,7 +153,9 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
            '\t Ошибочно классифицированы:{0} тов.'.format(error_estimates), \
            '\nКачество классификации по категориям:', \
            '\tТочность по категория:\n\t\t{0}'.format(dict_p), \
-           '\tПолнота по категориям:\n\t\t{0}'.format(dict_r), '\nДетальная информация сохранена в файл.'
+           '\tПолнота по категориям:\n\t\t{0}'.format(dict_r), \
+           '\tСбалансированная F1 мара:\n\t\t{0}'.format(dict_f), \
+           '\nДетальная информация сохранена в файл.'
 
 
 # start_time = time.time()
