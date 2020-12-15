@@ -82,7 +82,7 @@ def get_category_kupivip(category_id):
     category_from_db = session.query(Classifier_kupivip).filter(Classifier_kupivip.category_id == category_id).first()
     return category_from_db
 
-data_cat={'category_id':'23', 'path_category':'Для дома Домашний текстиль Одеяла'};
+#data_cat={'category_id':'23', 'path_category':'Для дома Домашний текстиль Одеяла'};
 
 #add_category_kupivip(data_cat)
 #tr=(get_category_kupivip(23))
