@@ -1,6 +1,7 @@
 import bd_connector
 import bottle
 from truckpad.bottle.cors import CorsPlugin, enable_cors
+import bd_connector
 
 app = bottle.Bottle()
 
@@ -88,11 +89,16 @@ def get_classifier():
 @app.route('/api/confirm_class/', method=['POST'])
 def confirm_class():
     path = dict()
+    categories=bd_connector.read_confirmed_category()
+    print(categories)
     data_raw = bottle.request.json
     path['category'] = data_raw[0].get('category', 'None')
     data=get_goods_descriptions([data_raw[0].get('goods_description', 'None')], 'confirm')
     path['path']=data[1]
+    path['uid']=categories[1]+1
     good=data[0]
+    bd_connector.add_category_to_dict_categories(path)
+
     print('пвть\n', path)
     print('дескриптор\n', good)
     return 'ok'
