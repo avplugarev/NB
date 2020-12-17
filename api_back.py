@@ -18,46 +18,84 @@ def clear_file_data(working_sheet):
     return working_sheet
 
 
-@enable_cors
-@app.route('/api/classifier/', method=['POST'])
-def get_classifier():
+def get_goods_descriptions(raw_description,request_type):
+    # зводим словари для обработки описания товара
+    ##словарь разрешенных полей
     good_allowed_inputs = ['level1', 'level2', 'level3', 'level4', 'level5', 'level6',
-                 'name', 'composition', 'technicalDescription', 'gender', 'variantCode', 'vat',
-                 'age', 'trackingType', 'material', 'jeansCut']
-    gender = {0:'любой_пол', 1:'мужчинам', 2:'женщинам'}
+                           'name', 'composition', 'technicalDescription', 'gender', 'items', 'vat',
+                           'age', 'trackingType', 'material', 'jeansCut']
+    ##cловари справочников для замены
+    gender = {0: 'любой_пол', 1: 'мужчинам', 2: 'женщинам'}
     vat = {0: 'медицина', 10: 'детский', 20: 'товар_с_обычным_налогом'}
     trackingType = {'LOT': 'без_чипа', 'DMX': 'обувь', 'datamatrix': 'обувь', 'MEX': 'мех', 'обычный': 'без_чипа',
-                    'LPR':'легпром', 'PRF':'парфюм', 'легпром':'легпром', 'парфюм':'парфюм'}
-    material = {1:'текстиль', 2:'трикотаж', 3:'другое'}
-    inputs=['gender','vat', 'trackingType', 'material']
-    goods_description = []  # пустой список под описагния товаров
+                    'LPR': 'легпром', 'PRF': 'парфюм', 'легпром': 'легпром', 'парфюм': 'парфюм'}
+    material = {1: 'текстиль', 2: 'трикотаж', 3: 'другое'}
+    inputs = ['gender', 'vat', 'trackingType', 'material', 'items']
 
-    goods_description_raw = bottle.request.json
-    for value in goods_description_raw:
+    goods_description = []  # пустой список под описания товаров
+
+    for value in raw_description:
+        # заменяемм цифровые значения полей описания товара на текстовые значения из справочников
         for i in range(len(inputs)):
             if value.get(inputs[i], 'None') != 'None':
-                temp=value.get(inputs[i])
-                if i ==0:
-                    value['gender']=gender[temp]
-                elif i ==1:
+                temp = value.get(inputs[i])
+                sizes = str()
+                if i == 0:
+                    value['gender'] = gender[temp]
+                elif i == 1:
                     value['vat'] = vat[temp]
-                elif i ==2:
+                elif i == 2:
                     value['trackingType'] = trackingType[temp]
-                elif i ==3:
+                elif i == 3:
                     value['material'] = material[temp]
+                elif i == 4:
+                    for k in range(len(value['items'])):
+                        temp2 = value['items'][k]
+                        temp2 = temp2.get('variantCode')
+                        sizes = sizes + ' ' + temp2
+                    value['items'] = sizes
 
-        good = str()
+        classificator_path = str()  # пустой классификатор
+        for l in range(6):
+            if value.get(good_allowed_inputs[l], 'None') != 'None':
+                if value.get(good_allowed_inputs[l]) == '' or value.get(good_allowed_inputs[l]) == 'None':
+                    classificator_path = classificator_path + ' None'
+                else:
+                    classificator_path = classificator_path + ' ' + value.get(good_allowed_inputs[l])
+
+        # отфильтровываемм в описании товара только нужные поля
+        good = str()  # переменная под описние отдельного поля
         for j in range(len(good_allowed_inputs)):
-            if value.get(good_allowed_inputs[j], 'None') !='None':
+            if value.get(good_allowed_inputs[j], 'None') != 'None':
                 if value != None:
                     good = good + ' ' + str(value[good_allowed_inputs[j]])
         goods_description.append(good)
-    print(goods_description)
+    if request_type == 'class':
+        return goods_description
+    elif request_type =='confirm':
+        return goods_description, classificator_path
 
-    return 'OK'
+
+@enable_cors
+@app.route('/api/classifier/', method=['POST'])
+def get_classifier():
+    goods_description = get_goods_descriptions(bottle.request.json, 'class')
+
+    return goods_description
 
 
-
+@enable_cors
+@app.route('/api/confirm_class/', method=['POST'])
+def confirm_class():
+    path = dict()
+    data_raw = bottle.request.json
+    path['category'] = data_raw[0].get('category', 'None')
+    data=get_goods_descriptions([data_raw[0].get('goods_description', 'None')], 'confirm')
+    path['path']=data[1]
+    good=data[0]
+    print('пвть\n', path)
+    print('дескриптор\n', good)
+    return 'ok'
 
 
 app.install(CorsPlugin(origins=['http://localhost:8000']))
