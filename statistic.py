@@ -40,8 +40,14 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
 
     dict_a = dict.fromkeys(list_categories, 0)  # сколько истинно правильно нашли для каждой категории -a
     dict_d = dict.fromkeys(list_categories, 0)  # сколько должен был найти, но не нашел для категорий - d
+    #print(goods_classes_by_algorithm)
 
     for i in range(len(goods_classes_by_teacher)):
+        # goods_classes_by_teacher[i]="'"+str(goods_classes_by_teacher[i])+"'"
+        #print(goods_classes_by_teacher[i], 'ftf')
+        tp = goods_classes_by_teacher[i]
+        tr = goods_classes_by_algorithm[i]
+        #print(goods_classes_by_algorithm[i], 'ara')
         if goods_classes_by_teacher[i] == goods_classes_by_algorithm[i]:
             correct_estimates = correct_estimates + 1  # обновляем общее число правильно определенных категорий
             dict_a[goods_classes_by_teacher[i]] = dict_a.get(goods_classes_by_teacher[i]) + 1  # считаем а
@@ -62,6 +68,7 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
     dict_p = {}  # P - точность
     dict_r = {}  # R - полнота
     dict_e = {}
+
     for value in list_categories:
         dict_p[value] = dict_a[value] / (dict_a[value] + dict_c[value])
         dict_r[value] = dict_a[value] / (dict_a[value] + dict_d[value])
@@ -78,7 +85,7 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
     wb = Workbook()
     path_to_file = 'file_to_load/output.xlsx'
 
-    #заполняем первую вкладку значениями классификатора
+    # заполняем первую вкладку значениями классификатора
     ##заголовок таблицы
     ws1 = wb.active
     ws1.title = 'результат классификации'
@@ -101,7 +108,7 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
                 else:
                     ws1.cell(column=col, row=counter + 1, value='{0}'.format(goods_classes_by_algorithm[counter - 1]))
         counter = counter + 1
-    #заполняем вторую вкладку результаты анализа
+    # заполняем вторую вкладку результаты анализа
     ws2 = wb.create_sheet(title="Оценка классификации")
     ##заполняем заголовки общей таблицы
     column_titles2 = {0: '№', 1: 'Класс', 2: 'P-точность', 3: 'R-Полнота',
@@ -140,7 +147,7 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
             ws2.cell(column=col, row=row, value='{0}'.format(column_titles3[i]))
         for col in range(2, 3):
             ws2.cell(column=col, row=row, value='{0}'.format(output_values[i]))
-        i=i+1
+        i = i + 1
 
     wb.save(filename=path_to_file)
 

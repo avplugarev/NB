@@ -46,7 +46,7 @@ class Prepared_data(Base):
     __tablename__ = 'pre_data'
     uid = sa.Column(sa.INTEGER, primary_key=True)
     goods_description = sa.Column(sa.TEXT)
-    goods_target_classes = sa.Column(sa.TEXT)
+    goods_target_classes = sa.Column(sa.INTEGER)
     goods_supplier_classes = sa.Column(sa.TEXT)
 
 
@@ -106,7 +106,7 @@ def add_category_to_dict_categories(data):
     """
     session = connect_db()
     new_comfirmed_category = Classified_category(
-        uid=data['uid'],
+        uid=data['uid_path'],
         category_path=data['path'],
         category_id=data['category'],
         veryfied='0'
@@ -114,8 +114,90 @@ def add_category_to_dict_categories(data):
     session.add(new_comfirmed_category)
     session.commit()
 
+
+def read_prepared_data():
+    """
+            Метод чтения подготовленных для обучения классификатора данных
+    """
+    session = connect_db()
+    data_from_db = session.query(Prepared_data).all()
+    goods_description = list()
+    goods_categories = []
+    for good in data_from_db:
+        goods_description.append(good.goods_description)
+        goods_categories.append(good.goods_target_classes)
+    return goods_description, goods_categories, len(goods_categories)
+
+
+def add_good_to_prepared_data(data):
+    """
+        Метод добавления проверенных товаров в обучающую выборку
+    """
+    session = connect_db()
+    new_good_to_education = Prepared_data(
+        uid=data['uid_educ'],
+        goods_description=data['description'],
+        goods_target_classes=data['category'],
+        goods_supplier_classes=data['path']
+    )
+    session.add(new_good_to_education)
+    session.commit()
+
+def user_login_check(login, password):
+    """
+        Метод проверки корректности введенного логина и пароля
+    """
+    session = connect_db()
+    user_verification_data = session.query(Users).filter(Users.user_login == login).first()
+    if user_verification_data != None:
+        if user_verification_data.user_login == login:
+            if user_verification_data.user_password == password:
+                return True
+            else:
+                return False
+        else:
+            return False
+    else:
+        return False
+
+def edu_data_delete():
+    """
+        Метод удаления обучающих данных из базы
+    """
+    session = connect_db()
+    session.query(Prepared_data).delete()
+    session.commit()
+
+    return 'Данные удалены из базы обучения'
+
+def classifier_kupivip_delete():
+    """
+        Метод удаления классификатора купивип
+    """
+    session = connect_db()
+    session.query(Classifier_kupivip).delete()
+    session.commit()
+
+    return 'Данные удалены из базы классификатора kupivip'
+
+def classified_category_delete():
+    """
+        Метод удаления классификатора купивип
+    """
+    session = connect_db()
+    session.query(Classified_category).delete()
+    session.commit()
+
+    return 'Данные удалены из справочника подтвержденных категорий'
+
 # data_cat={'category_id':'23', 'path_category':'Для дома Домашний текстиль Одеяла'};
 
 # add_category_kupivip(data_cat)
 # tr=(get_category_kupivip(23))
 # print (tr.category_path)
+
+#print(edu_data_delete())
+#print(classifier_kupivip_delete())
+print(classified_category_delete())
+
+
