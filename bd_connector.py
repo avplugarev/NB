@@ -74,13 +74,13 @@ def add_category_kupivip(data):
     session.commit()
 
 
-def get_category_kupivip(category_id):
+def get_category_kupivip_by_id(category_id):
     """
-        #Получаем категорию kupivip из базы
+        #Получаем путь категории kupivip из базы по ее  id
     """
     session = connect_db()
-    category_from_db = session.query(Classifier_kupivip).filter(Classifier_kupivip.category_id == category_id).first()
-    return category_from_db
+    category_from_db = session.query(Classifier_kupivip).filter(Classifier_kupivip.category_id == int(category_id)).first()
+    return category_from_db.category_path
 
 
 def read_confirmed_category():
@@ -114,6 +114,14 @@ def add_category_to_dict_categories(data):
     session.add(new_comfirmed_category)
     session.commit()
 
+def get_category_id_from_confirmed_categ(category_path):
+    """
+           #Получаем id подтвержденной категории из справочника подтвержденных категорий (таб Classified_category  bd
+    """
+    session = connect_db()
+    category_from_db = session.query(Classified_category).filter(
+        Classified_category.category_path == category_path).first()
+    return category_from_db.category_id
 
 def read_prepared_data():
     """
@@ -198,6 +206,6 @@ def classified_category_delete():
 
 #print(edu_data_delete())
 #print(classifier_kupivip_delete())
-print(classified_category_delete())
+#print(classified_category_delete())
 
 

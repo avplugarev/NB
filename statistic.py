@@ -1,6 +1,7 @@
 import time
 import numpy as np
 from openpyxl import Workbook
+import bd_connector
 
 """
 a – кол-во правильно определенных  классификатором документов для категории
@@ -45,8 +46,8 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
     for i in range(len(goods_classes_by_teacher)):
         # goods_classes_by_teacher[i]="'"+str(goods_classes_by_teacher[i])+"'"
         #print(goods_classes_by_teacher[i], 'ftf')
-        tp = goods_classes_by_teacher[i]
-        tr = goods_classes_by_algorithm[i]
+        #tp = goods_classes_by_teacher[i]
+        #tr = goods_classes_by_algorithm[i]
         #print(goods_classes_by_algorithm[i], 'ara')
         if goods_classes_by_teacher[i] == goods_classes_by_algorithm[i]:
             correct_estimates = correct_estimates + 1  # обновляем общее число правильно определенных категорий
@@ -65,21 +66,35 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
         dict_c[value] = dict_m[value] - dict_a[value]  # для каждой категории из m-a
 
     # считаем P - точность a/(a+c) и R - полнота a/(a+d)
-    dict_p = {}  # P - точность
-    dict_r = {}  # R - полнота
-    dict_e = {}
+    dict_p = dict.fromkeys(list_categories, 0)  # P - точность
+    dict_r = dict.fromkeys(list_categories, 0)  # R - полнота
+    dict_e = dict.fromkeys(list_categories, 0) # E - ошибки
 
     for value in list_categories:
-        dict_p[value] = dict_a[value] / (dict_a[value] + dict_c[value])
-        dict_r[value] = dict_a[value] / (dict_a[value] + dict_d[value])
-        dict_e[value] = (dict_c[value] + dict_d[value]) / (
-                dict_c[value] + dict_d[value] + dict_a[value] + dict_a[value])
+        if dict_a[value] == 0:
+            dict_p[value]=0
+            dict_r[value]=0
+        else:
+            dict_p[value] = dict_a[value] / (dict_a[value] + dict_c[value])
+            dict_r[value] = dict_a[value] / (dict_a[value] + dict_d[value])
+
+        if (dict_c[value] + dict_d[value]) ==0 or (dict_c[value] + dict_d[value] + dict_a[value] + dict_a[value]) ==0:
+            dict_e[value] ==0
+        else:
+            dict_e[value] = (dict_c[value] + dict_d[value]) / (
+                    dict_c[value] + dict_d[value] + dict_a[value] + dict_a[value])
+
 
     dict_f = {}  # F-мера
     for value in list_categories:
-        dict_f[value] = (2 * dict_p[value] * dict_r[value]) / (dict_p[value] + dict_r[value])
-
-    f_general = (sum(dict_f.values())) / len(dict_f)  # F-мера средняя по всем категориям
+        if dict_p[value] ==0 or dict_r[value]==0:
+            dict_f[value] = 0
+        else:
+            dict_f[value] = (2 * dict_p[value] * dict_r[value]) / (dict_p[value] + dict_r[value])
+    if sum(dict_f.values()) ==0 or len(dict_f) ==0:
+        f_general =0
+    else:
+        f_general = (sum(dict_f.values())) / len(dict_f)  # F-мера средняя по всем категориям
 
     # сохраняем значения в excel
     wb = Workbook()
@@ -89,24 +104,30 @@ def quality_classification(goods_description, goods_classes_by_teacher, goods_cl
     ##заголовок таблицы
     ws1 = wb.active
     ws1.title = 'результат классификации'
-    column_titles = {0: '№ товара', 1: 'Путь классификатора поставщика', 2: 'ID классификатора учителя',
-                     3: 'ID классификатора алогоритма'}
+    column_titles = {0: '№ товара',
+                     1: 'Путь классификатора поставщика',
+                     2: 'ID классификатора учителя',
+                     3: 'ID классификатора алогоритма',
+                     4: 'Путь классификатора купивип'}
     ##значения таблицы классификатора
     counter = int(0)
     while counter < len(goods_supplier_classes) + 1:
         if counter == 0:
-            for col in range(1, 5):
+            for col in range(1, 6):
                 ws1.cell(column=col, row=counter + 1, value='{0}'.format(column_titles[col - 1]))
         else:
-            for col in range(1, 5):
+            for col in range(1, 6):
                 if col == 1:
                     ws1.cell(column=col, row=counter + 1, value='{0}'.format(counter))
                 elif col == 2:
                     ws1.cell(column=col, row=counter + 1, value='{0}'.format(goods_supplier_classes[counter - 1]))
                 elif col == 3:
                     ws1.cell(column=col, row=counter + 1, value='{0}'.format(goods_classes_by_teacher[counter - 1]))
-                else:
+                elif col == 4:
                     ws1.cell(column=col, row=counter + 1, value='{0}'.format(goods_classes_by_algorithm[counter - 1]))
+                else:
+                    category_path_kupivip=bd_connector.get_category_kupivip_by_id(goods_classes_by_algorithm[counter - 1])
+                    ws1.cell(column=col, row=counter + 1, value='{0}'.format(category_path_kupivip))
         counter = counter + 1
     # заполняем вторую вкладку результаты анализа
     ws2 = wb.create_sheet(title="Оценка классификации")

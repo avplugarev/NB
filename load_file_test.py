@@ -40,7 +40,7 @@ class FileLoader:
             #добавляем описание пути к категории в коллекции пставщика
             goods_supplier_classes.append(goods_supplier_class)
 
-            #print('товар - {} добавлен в выходные списки. \r'.format(len(goods_description)), end="")
+            print('товар - {} добавлен в выходные списки. \r'.format(len(goods_description)), end="")
 
         file.close()
         return goods_description, goods_target_classes, goods_supplier_classes
@@ -95,14 +95,14 @@ class FileLoader:
     def load_classifier_kupivip(path):
         file = openpyxl.load_workbook(path)  # загружам файл в объект для дальнейшей работе с ним
         working_sheet = file.active  # получаю объект лист ддя работы
-
+        print(bd_connector.classifier_kupivip_delete())
         for row in working_sheet.values:
             category_id = {}
             data = {}
             category_path = str()
             for value in row[:1]:
                 category_id = value
-            for value in row[2:7]:
+            for value in row[1:7]:
                 if value == None:
                     category_path = category_path + ' ' + str('None')
                 else:
@@ -111,7 +111,7 @@ class FileLoader:
             data['path_category'] = category_path
             bd_connector.add_category_kupivip(data)
         file.close()
-        return 'данные по категориям успешно загружены'
+        return 'Данные по категориям успешно загружены'
 
 
 
