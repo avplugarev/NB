@@ -94,7 +94,9 @@ def need_NB_class(path):
 @enable_cors
 @app.route('/api/classifier/', method=['POST'])
 def get_classifier():
-    model = classification.teach_classifier()  # обучаем модель
+    global model #храним обученную ранее модель
+
+    #model = classification.teach_classifier()  # обучаем модель
 
     # получаем описание товара из запроса (0 - описание и 1 - путь к категории у поставщика)
     data = get_goods_descriptions(bottle.request.json, 'class')  # отрефакторить отказ от второго параметра
@@ -165,4 +167,6 @@ def do_login():
 app.install(CorsPlugin(origins=['http://localhost:8000']))
 
 if __name__ == "__main__":
+    model = classification.teach_classifier()  # обучаем модель
     bottle.run(app, host="localhost", port=5000)
+    #model = classification.teach_classifier()  # обучаем модель

@@ -27,10 +27,10 @@ def load_educ_data_to_bd(path):
 def teach_classifier():
     data_from_db = bd_connector.read_prepared_data() #получаем из базы описния товаров, набор категорий для них
     model_goods_description = data_from_db[0] ##набор описаний товаров
-    print(model_goods_description)
+    #print(model_goods_description)
 
     model_goods_class_values = np.array(data_from_db[1]) ##набор категорий
-    print(model_goods_class_values)
+    #print(model_goods_class_values)
 
     model_vocabular = CountVectorizer()  # инициируем пустой словарь
 
