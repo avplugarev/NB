@@ -121,7 +121,10 @@ def get_category_id_from_confirmed_categ(category_path):
     session = connect_db()
     category_from_db = session.query(Classified_category).filter(
         Classified_category.category_path == category_path).first()
-    return category_from_db.category_id
+    if category_from_db == None:
+        return None
+    else:
+        return category_from_db.category_id
 
 def read_prepared_data():
     """

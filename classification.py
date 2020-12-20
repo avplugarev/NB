@@ -27,7 +27,10 @@ def load_educ_data_to_bd(path):
 def teach_classifier():
     data_from_db = bd_connector.read_prepared_data() #получаем из базы описния товаров, набор категорий для них
     model_goods_description = data_from_db[0] ##набор описаний товаров
+    print(model_goods_description)
+
     model_goods_class_values = np.array(data_from_db[1]) ##набор категорий
+    print(model_goods_class_values)
 
     model_vocabular = CountVectorizer()  # инициируем пустой словарь
 
@@ -63,20 +66,20 @@ start_time_edu = time.time()
 #print(load_educ_data_to_bd(path))
 
 #обучаем модель
-model = teach_classifier()
+#model = teach_classifier()
 
 #готовим товары к оценке
-start_time_clas = time.time()
-goods = good_preparation(path, model[1])
+#start_time_clas = time.time()
+#goods = good_preparation(path, model[1])
 
 
 #получаем результаты оценки
-result = classifay(model[0], goods[0])
-print('\nРезультаты классификации товаров:',result, '\n')
+#result = classifay(model[0], goods[0])
+#print('\nРезультаты классификации товаров:',result, '\n')
 
 # статистика по тестированию
-for value in (statistic.quality_classification(goods[1][0],goods[1][1],result, start_time_edu, start_time_clas, goods[1][2])):
-    print(value)
+#for value in (statistic.quality_classification(goods[1][0],goods[1][1],result, start_time_edu, start_time_clas, goods[1][2])):
+ #   print(value)
 
 
 

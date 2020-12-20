@@ -76,47 +76,77 @@ def get_goods_descriptions(raw_description, request_type):
                 if value != None:
                     good = good + ' ' + str(value[good_allowed_inputs[j]])
         goods_description.append(good)
-    if request_type == 'class':
-        return goods_description
+    if request_type == 'class':  # отрефакторить у ублрать условное возвращение. теперь всего нужне пять исходный
+        return goods_description, classificator_path
     elif request_type == 'confirm':
         return goods_description, classificator_path
+
+
+def need_NB_class(path):
+    check = bd_connector.get_category_id_from_confirmed_categ(path)
+    if check == None:
+        return 'yes'
+    else:
+        return check
 
 
 # метод API получения категории по описанию товара
 @enable_cors
 @app.route('/api/classifier/', method=['POST'])
 def get_classifier():
-    model = classification.teach_classifier()
-    goods_description = get_goods_descriptions(bottle.request.json, 'class')
-    good_without_class_vector = model[1].transform(
-        goods_description)
-    good_without_class_vector=good_without_class_vector.toarray()
-    result = classification.classifay(model[0], good_without_class_vector)
-    result = np.ndarray.tolist(result)
-    my_response = dict()
-    for n in range(len(result)):
-        my_response['Категория товара №{0}'.format(n+1)]=result[n]
+    model = classification.teach_classifier()  # обучаем модель
 
+    # получаем описание товара из запроса (0 - описание и 1 - путь к категории у поставщика)
+    data = get_goods_descriptions(bottle.request.json, 'class')  # отрефакторить отказ от второго параметра
+    path = data[1] #путь до категории в классификаторе поставщика
+    goods_description = data[0] #описание товара
+
+    # производим классификацию
+    my_response = dict()  ##заводим пустой словарь под ответы
+
+    for i in range(len(goods_description)):
+        check = need_NB_class(path)  ##для каждого поисания проверяем нужна ли классификация по NB
+
+        if check != 'yes':
+            my_response['Категория товара №{0}'.format(i + 1)] = check  ##присваиваем категорию из базы елси не нужен NB
+        else:
+            ##Присвоимваем категорию на оснвое NB
+            ###переводим в векторную форму описания товара для классификации
+            good = goods_description[i] #получаем описание отдельного товара для классификации
+            good = [good] #переводим его в элемент списока
+            good_without_class_vector = model[1].transform(good)
+
+            ###перводим в массив
+            good_without_class_vector = good_without_class_vector.toarray()
+
+            ###получаем нампи массив результата классификации
+            result = classification.classifay(model[0],
+                                                  good_without_class_vector)
+            ###получаем нампи массив результата классификации
+            result = np.ndarray.tolist(result)
+
+            ###добавляем результат в справочник массива
+            my_response['Категория товара №{0}'.format(i + 1)] = result
     return my_response
-
 
 # метод API для записи в базу подтвержденной модератором категории
 @enable_cors
 @app.route('/api/confirm_class/', method=['POST'])
 def confirm_class():
-    good = dict() #пустой словарь, в который сложим данные для записи в базу
+    good = dict()  # пустой словарь, в который сложим данные для записи в базу
     categories = bd_connector.read_confirmed_category()  # получаем список подтвержденных категорий
     educt_data = bd_connector.read_prepared_data()  # получаем список описаний товаров для обучения
     data_raw = bottle.request.json  # получаем данные сырого запроса
-    good['category'] = data_raw[0].get('category', 'None') #записывае номер категории
+    good['category'] = data_raw[0].get('category', 'None')  # записывае номер категории
     data = get_goods_descriptions([data_raw[0].get('goods_description', 'None')], 'confirm')
-    good['path'] = data[1] #путь к категории
-    good['uid_path'] = categories[1] + 1 #id в таблице подтвержденных категорий
-    good['uid_educ'] = educt_data[2] + 1 #id в таблице с обучающими описаниями
-    good['description'] = data[0][0] #описание товара
+    good['path'] = data[1]  # путь к категории
+    good['uid_path'] = categories[1] + 1  # id в таблице подтвержденных категорий
+    good['uid_educ'] = educt_data[2] + 1  # id в таблице с обучающими описаниями
+    good['description'] = data[0][0]  # описание товара
     bd_connector.add_category_to_dict_categories(good)
     bd_connector.add_good_to_prepared_data(good)
     return 'Данные добавлены в БД.'
+
 
 # метод API авторизации
 @enable_cors
