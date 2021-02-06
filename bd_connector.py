@@ -30,7 +30,7 @@ class Classifier_kupivip(Base):
 
 class Classified_category(Base):
     """
-        #Описываем структуру таблицы classified_category для хранения классифицированных категорий купивип
+        #Описываем структуру таблицы classified_category для хранения классифицированных категорий
     """
     __tablename__ = 'classified_category'
     uid = sa.Column(sa.INTEGER, primary_key=True)
@@ -41,7 +41,7 @@ class Classified_category(Base):
 
 class Prepared_data(Base):
     """
-        #Описываем структуру таблицы pre_data для хранения предварительно обработанных для обучения модели товаров
+        Описываем структуру таблицы pre_data для хранения предварительно обработанных для обучения модели товаров
     """
     __tablename__ = 'pre_data'
     uid = sa.Column(sa.INTEGER, primary_key=True)
@@ -78,10 +78,18 @@ def get_category_kupivip_by_id(category_id):
     """
         #Получаем путь категории kupivip из базы по ее  id
     """
-    session = connect_db()
-    category_from_db = session.query(Classifier_kupivip).filter(Classifier_kupivip.category_id == int(category_id)).first()
-    return category_from_db.category_path
-
+    data_to_return = str('категория')
+    try:
+        session = connect_db()
+        category_from_db = session.query(Classifier_kupivip).filter(
+            Classifier_kupivip.category_id == int(category_id)).first()
+        data_to_return = category_from_db.category_path
+    except AttributeError:
+        print('данные не нашли', category_id)
+    except Exception:
+        print('что-то пошло не так')
+    finally:
+        return data_to_return
 
 def read_confirmed_category():
     """
@@ -116,7 +124,7 @@ def add_category_to_dict_categories(data):
 
 def get_category_id_from_confirmed_categ(category_path):
     """
-           #Получаем id подтвержденной категории из справочника подтвержденных категорий (таб Classified_category  bd
+        Получаем id подтвержденной категории из справочника подтвержденных категорий (таб Classified_category  bd
     """
     session = connect_db()
     category_from_db = session.query(Classified_category).filter(
@@ -128,7 +136,7 @@ def get_category_id_from_confirmed_categ(category_path):
 
 def read_prepared_data():
     """
-            Метод чтения подготовленных для обучения классификатора данных
+        Метод чтения подготовленных для обучения классификатора данных
     """
     session = connect_db()
     data_from_db = session.query(Prepared_data).all()
@@ -193,7 +201,7 @@ def classifier_kupivip_delete():
 
 def classified_category_delete():
     """
-        Метод удаления классификатора купивип
+        Метод удаления подтвержденных категорий
     """
     session = connect_db()
     session.query(Classified_category).delete()

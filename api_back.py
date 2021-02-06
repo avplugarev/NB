@@ -24,6 +24,8 @@ app = bottle.Bottle()
 # return working_sheet
 
 # метод очистки ненужных полей из описания товара
+
+
 def get_goods_descriptions(raw_description, request_type):
     # зводим словари для обработки описания товара
     ##словарь разрешенных полей
@@ -94,42 +96,44 @@ def need_NB_class(path):
 @enable_cors
 @app.route('/api/classifier/', method=['POST'])
 def get_classifier():
-    global model #храним обученную ранее модель
-
-    #model = classification.teach_classifier()  # обучаем модель
+    global model  # храним обученную ранее модель
 
     # получаем описание товара из запроса (0 - описание и 1 - путь к категории у поставщика)
     data = get_goods_descriptions(bottle.request.json, 'class')  # отрефакторить отказ от второго параметра
-    path = data[1] #путь до категории в классификаторе поставщика
-    goods_description = data[0] #описание товара
+    path = data[1]  # путь до категории в классификаторе поставщика
+    print(path)
+    goods_description = data[0]  # описание товара
+    print(goods_description)
 
     # производим классификацию
-    my_response = dict()  ##заводим пустой словарь под ответы
+    my_response = dict()  ## заводим пустой словарь под ответы
 
     for i in range(len(goods_description)):
-        check = need_NB_class(path)  ##для каждого поисания проверяем нужна ли классификация по NB
+        print('вот путь', path, type(path))
+        check = need_NB_class(path)  ## для каждого поисания проверяем нужна ли классификация по NB
 
         if check != 'yes':
-            my_response['Категория товара №{0}'.format(i + 1)] = check  ##присваиваем категорию из базы елси не нужен NB
+            my_response['Категория товара №{0}'.format(i + 1)] = check  ## присваиваем категорию из базы елси не нужен NB
         else:
-            ##Присвоимваем категорию на оснвое NB
-            ###переводим в векторную форму описания товара для классификации
-            good = goods_description[i] #получаем описание отдельного товара для классификации
-            good = [good] #переводим его в элемент списока
+            ## Присвоимваем категорию на оснвое NB
+            ### переводим в векторную форму описания товара для классификации
+            good = goods_description[i]  # получаем описание отдельного товара для классификации
+            good = [good]  # переводим его в элемент списока
             good_without_class_vector = model[1].transform(good)
 
-            ###перводим в массив
+            ### перводим в массив
             good_without_class_vector = good_without_class_vector.toarray()
 
-            ###получаем нампи массив результата классификации
+            ### получаем нампи массив результата классификации
             result = classification.classifay(model[0],
-                                                  good_without_class_vector)
-            ###получаем нампи массив результата классификации
+                                              good_without_class_vector)
+            ### получаем нампи массив результата классификации
             result = np.ndarray.tolist(result)
 
-            ###добавляем результат в справочник массива
+            ### добавляем результат в справочник массива
             my_response['Категория товара №{0}'.format(i + 1)] = result
     return my_response
+
 
 # метод API для записи в базу подтвержденной модератором категории
 @enable_cors
@@ -169,4 +173,4 @@ app.install(CorsPlugin(origins=['http://localhost:8000']))
 if __name__ == "__main__":
     model = classification.teach_classifier()  # обучаем модель
     bottle.run(app, host="localhost", port=5000)
-    #model = classification.teach_classifier()  # обучаем модель
+    # model = classification.teach_classifier()  # обучаем модель
