@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 setuptools.setup(
     name="NB_realisation",
-    version="1.0.0",
+    version="2.0.0.0",
     author="Александр Плугарев",
     author_email="nightgust@gmail.com",
     description="API клиент по запросу классифицирующий товары",
